@@ -128,7 +128,7 @@ final class UnknownAuthor extends QuotedAuthor {
 
 /// A message a [UserSaid] quotes, as its source carries it.
 final class Quote {
-  const Quote({required this.source, required this.author});
+  const Quote({required this.source, required this.author, this.preview});
 
   /// The quoted message's id, in its source's own terms. Always within the
   /// same conversation as the [UserSaid] that quotes it, since a quote
@@ -137,6 +137,12 @@ final class Quote {
 
   /// Who wrote the quoted message.
   final QuotedAuthor author;
+
+  /// A shortened copy of the quoted text, if the source showed one
+  /// alongside the quote. Matters most when [source] never reached the
+  /// journey path: then this is the only trace of what was quoted a reader
+  /// can still see.
+  final String? preview;
 }
 
 /// What a person said, as a module received it from its source.

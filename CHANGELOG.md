@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- `Quote` gains an optional `preview: String?`: a shortened copy of the
+  quoted text, if the source showed one. Matters most when `source` never
+  reached the journey path, leaving this the only trace of what was quoted.
+
 ## 0.3.0
 
 - **Breaking:** `QuotedAuthor`'s two cases are renamed `Known` → `KnownAuthor`
