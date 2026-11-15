@@ -104,14 +104,14 @@ final class SourceMessageId {
 /// who never addressed the agent, say — so there has to be a case for that
 /// too, under every way a module might go about resolving it. A reader
 /// switches on both: a display name is something a source showed alongside
-/// the quote, never an identity, so nothing reads [Unknown] as one.
+/// the quote, never an identity, so nothing reads [UnknownAuthor] as one.
 sealed class QuotedAuthor {
   const QuotedAuthor();
 }
 
 /// The quoted message's author, resolved to an actor id.
-final class Known extends QuotedAuthor {
-  const Known(this.actor);
+final class KnownAuthor extends QuotedAuthor {
+  const KnownAuthor(this.actor);
 
   /// Who wrote the quoted message.
   final ActorId actor;
@@ -119,8 +119,8 @@ final class Known extends QuotedAuthor {
 
 /// The quoted message's author wasn't in the record, or a module's attempt
 /// to resolve one failed or was refused.
-final class Unknown extends QuotedAuthor {
-  const Unknown(this.displayName);
+final class UnknownAuthor extends QuotedAuthor {
+  const UnknownAuthor(this.displayName);
 
   /// Whatever the source showed alongside the quote, if it showed anything.
   final String? displayName;

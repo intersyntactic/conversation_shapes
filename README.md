@@ -35,7 +35,7 @@ final onlyAQuote = UserSaid(
   text: '',
   quotes: Quote(
     source: SourceMessageId.parse('1234567890.123456')!,
-    author: Known(id),
+    author: KnownAuthor(id),
   ),
 );
 
@@ -65,7 +65,8 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
   quoted message's `source: SourceMessageId` and its `author: QuotedAuthor`.
   A quote never reaches across sources, so the quoted message is always
   within the same conversation.
-- `QuotedAuthor`: sealed, `Known(ActorId)` or `Unknown(String? displayName)`.
+- `QuotedAuthor`: sealed, `KnownAuthor(ActorId)` or `UnknownAuthor(String?
+  displayName)`.
   A quote's author isn't always resolvable — someone in a group chat who
   never wrote to the agent, say — under every way a module might try, so a
   reader handles both cases. A display name is whatever the source showed
@@ -123,7 +124,7 @@ from the parse tree, so every branch of a conditional import is read.
 
 ```yaml
 dependencies:
-  is_conversation_shapes: ^0.2.0
+  is_conversation_shapes: ^0.3.0
 ```
 
 It is published after `is_shapes`, which it depends on.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- **Breaking:** `QuotedAuthor`'s two cases are renamed `Known` → `KnownAuthor`
+  and `Unknown` → `UnknownAuthor` (teams-module-e2's call, while nothing yet
+  depended on the names): `Known(actor)` read in isolation without saying
+  what was known, and these are shape types meant to be read across modules.
+
 ## 0.2.0
 
 - `UserSaid` gains an optional `quotes: Quote?`: the message it answers or

@@ -34,7 +34,7 @@ void main() {
     text: '',
     quotes: Quote(
       source: SourceMessageId.parse('1234567890.123456')!,
-      author: Known(id),
+      author: KnownAuthor(id),
     ),
   );
   print('${onlyAQuote.author} quoted ${onlyAQuote.quotes?.author}');
