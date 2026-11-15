@@ -26,6 +26,19 @@ void main() {
   );
   print('${said.author} said: ${said.text}');
 
+  // A reply that only quotes another message and @-mentions the agent: no
+  // text of its own, but it names what it's about.
+  final onlyAQuote = UserSaid(
+    author: peter,
+    source: SourceMessageId.parse('1234567890.654321')!,
+    text: '',
+    quotes: Quote(
+      source: SourceMessageId.parse('1234567890.123456')!,
+      author: Known(id),
+    ),
+  );
+  print('${onlyAQuote.author} quoted ${onlyAQuote.quotes?.author}');
+
   // The journey path delivers back a TurnId for `said` once it's appended;
   // here we stand one in, since nothing is actually being stored.
   final saidId = TurnId.of(Uint8List(0));

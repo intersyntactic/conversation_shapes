@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0
+
+- `UserSaid` gains an optional `quotes: Quote?`: the message it answers or
+  replies to, as its source names it. `text` may be empty when `quotes` is
+  set — a reply that is only a quote and an @-mention has nothing of its
+  own to say.
+- New `Quote`, carrying the quoted message's `source: SourceMessageId` and
+  its `author: QuotedAuthor`.
+- New sealed `QuotedAuthor`, `Known(ActorId)` or `Unknown(String?
+  displayName)`: a quote's author isn't always resolvable, so a reader
+  handles both cases, and a bare display name never passes for an identity.
+
 ## 0.1.2
 
 - Widened `is_shapes` to `^0.4.0`, which renames `Withdraw` to `Withdrawal`

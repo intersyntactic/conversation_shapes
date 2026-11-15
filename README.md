@@ -27,6 +27,18 @@ final said = UserSaid(
   text: 'how is the demo coming?',
 );
 
+// A reply that only quotes another message and @-mentions the agent: no
+// text of its own, but it names what it's about.
+final onlyAQuote = UserSaid(
+  author: peter,
+  source: SourceMessageId.parse('1234567890.654321')!,
+  text: '',
+  quotes: Quote(
+    source: SourceMessageId.parse('1234567890.123456')!,
+    author: Known(id),
+  ),
+);
+
 // The journey path delivers back a TurnId for `said` once it's appended;
 // the agent's reply answers it by that id, never by matching text.
 final saidId = TurnId.of(Uint8List(0)); // stood in here; nothing is stored
@@ -41,11 +53,23 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
   latest. It holds no time, because the journey path's order already says
   which pass is latest.
 - `UserSaid`: what a person said, as a module received it from its source —
-  who said it, the message's id in its source's own terms, and the text.
-  Written once and never revised, so every field is identity.
+  who said it, the message's id in its source's own terms, the text, and
+  optionally the `Quote` it answers or replies to. Written once and never
+  revised, so every field is identity. `text` may be empty when `quotes` is
+  set, since a reply that is only a quote and an @-mention has nothing of
+  its own to say.
 - `SourceMessageId`: the typed id `UserSaid.source` carries, opaque here like
   `ActorId`'s tail, since this package doesn't know Teams or Slack and can't
   say what either one's ids look like.
+- `Quote`: a message a `UserSaid` quotes, as its source carries it — the
+  quoted message's `source: SourceMessageId` and its `author: QuotedAuthor`.
+  A quote never reaches across sources, so the quoted message is always
+  within the same conversation.
+- `QuotedAuthor`: sealed, `Known(ActorId)` or `Unknown(String? displayName)`.
+  A quote's author isn't always resolvable — someone in a group chat who
+  never wrote to the agent, say — under every way a module might try, so a
+  reader handles both cases. A display name is whatever the source showed
+  alongside the quote; it is never read as an identity.
 - `ReplyText`: the agent's reply to one `UserSaid`, written once, when the
   message it answers is finished. It `answers` by the `TurnId` the journey
   path delivered back for that `UserSaid`, which is what makes two replies
@@ -99,7 +123,7 @@ from the parse tree, so every branch of a conditional import is read.
 
 ```yaml
 dependencies:
-  is_conversation_shapes: ^0.1.0
+  is_conversation_shapes: ^0.2.0
 ```
 
 It is published after `is_shapes`, which it depends on.

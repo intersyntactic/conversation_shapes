@@ -30,6 +30,12 @@
 /// id stays a message id and never drifts into a bare [String] that any
 /// field could be built from.
 ///
+/// A [UserSaid] may carry a [Quote]: the message it answers or replies to,
+/// as its source names it. [QuotedAuthor] is sealed because a quote's
+/// author isn't always known, under every way a module might try to
+/// resolve one — so a reader has to handle both cases, and a bare display
+/// name can never pass for an identity.
+///
 /// It imports only `is_shapes`, so a shape file may import it under import
 /// admission's pure list once it is on it.
 library;
@@ -91,6 +97,48 @@ final class SourceMessageId {
   String toString() => value;
 }
 
+/// Who wrote the message a [Quote] quotes.
+///
+/// Not always resolvable: a quote can name someone who never wrote to the
+/// journey path the quoting module hears through — someone in a group chat
+/// who never addressed the agent, say — so there has to be a case for that
+/// too, under every way a module might go about resolving it. A reader
+/// switches on both: a display name is something a source showed alongside
+/// the quote, never an identity, so nothing reads [Unknown] as one.
+sealed class QuotedAuthor {
+  const QuotedAuthor();
+}
+
+/// The quoted message's author, resolved to an actor id.
+final class Known extends QuotedAuthor {
+  const Known(this.actor);
+
+  /// Who wrote the quoted message.
+  final ActorId actor;
+}
+
+/// The quoted message's author wasn't in the record, or a module's attempt
+/// to resolve one failed or was refused.
+final class Unknown extends QuotedAuthor {
+  const Unknown(this.displayName);
+
+  /// Whatever the source showed alongside the quote, if it showed anything.
+  final String? displayName;
+}
+
+/// A message a [UserSaid] quotes, as its source carries it.
+final class Quote {
+  const Quote({required this.source, required this.author});
+
+  /// The quoted message's id, in its source's own terms. Always within the
+  /// same conversation as the [UserSaid] that quotes it, since a quote
+  /// never reaches across sources.
+  final SourceMessageId source;
+
+  /// Who wrote the quoted message.
+  final QuotedAuthor author;
+}
+
 /// What a person said, as a module received it from its source.
 ///
 /// There is no echo-matching here: a module describes a [UserSaid] once, the
@@ -109,6 +157,7 @@ final class UserSaid {
     required this.author,
     required this.source,
     required this.text,
+    this.quotes,
   });
 
   /// Who said it.
@@ -117,8 +166,12 @@ final class UserSaid {
   /// The message's id in its source's own terms.
   final SourceMessageId source;
 
-  /// What they said.
+  /// What they said. May be empty when [quotes] is set: a reply that is
+  /// only a quote and an @-mention, say, carries nothing of its own to say.
   final String text;
+
+  /// The message this one quotes or replies to, if its source carries one.
+  final Quote? quotes;
 }
 
 /// The agent's reply to one [UserSaid], written once, when the message it
