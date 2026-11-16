@@ -147,7 +147,7 @@ read.
 
 ```yaml
 dependencies:
-  is_conversation_shapes: ^0.7.0
+  is_conversation_shapes: ^0.8.0
 ```
 
 It is published after `is_shapes`, which it depends on.

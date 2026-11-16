@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.0
+
+- `UserSaid.shapeName` and `WhatChanged.shapeNames` expose the `"shape"`
+  strings these codecs decode and encode, as plain `const` values rather
+  than switch-literals a reader would have to scrape with `package:analyzer`.
+  For a mechanical check that no two packages' top-level node shapes
+  collide (docking_station, 2026-11-16) — not `QuotedAuthor`'s shapes,
+  which nest inside `Quote` and are never dispatched at that top level.
+
 ## 0.7.0
 
 - `UserSaid` and `WhatChanged` (`Edited`, `Deleted`, `Restored`) carry

@@ -130,6 +130,11 @@ void main() {
     });
   });
 
+  test('shapeName/shapeNames name exactly the top-level node shapes', () {
+    expect(UserSaid.shapeName, 'UserSaid');
+    expect(WhatChanged.shapeNames, {'Edited', 'Deleted', 'Restored'});
+  });
+
   group('WhatChanged', () {
     test('round-trips Edited with a new quote', () {
       final changed = Edited(

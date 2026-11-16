@@ -278,17 +278,23 @@ final class UserSaid {
   /// The message this one quotes or replies to, if its source carries one.
   final Quote? quotes;
 
+  /// The `shape` this decodes and encodes as, for whoever checks that no
+  /// two packages' top-level node shapes collide (docking_station,
+  /// 2026-11-16) — not [QuotedAuthor]'s, which nests inside [Quote] and
+  /// is never dispatched at that top level.
+  static const String shapeName = 'UserSaid';
+
   /// [json] as a [UserSaid], read strictly: an unknown shape, a field
   /// missing, extra or of the wrong type, or a malformed id, is a
   /// [FormatException].
   factory UserSaid.fromJson(JsonObject json) {
-    if (json.string('shape') != 'UserSaid') {
-      throw FormatException('`shape` is not UserSaid: ${json.raw('shape')}');
+    if (json.string('shape') != shapeName) {
+      throw FormatException('`shape` is not $shapeName: ${json.raw('shape')}');
     }
     const fields = {'shape', 'author', 'source', 'text', 'quotes'};
     for (final key in json.keys) {
       if (!fields.contains(key)) {
-        throw FormatException('`$key` is not a field of UserSaid');
+        throw FormatException('`$key` is not a field of $shapeName');
       }
     }
     return UserSaid(
@@ -305,7 +311,7 @@ final class UserSaid {
 
   /// This [UserSaid] in a node's map form, for `jsonEncode`.
   JsonObject toJson() => JsonObject.of({
-    'shape': 'UserSaid',
+    'shape': shapeName,
     'author': author.value,
     'source': source.value,
     'text': text,
@@ -327,12 +333,21 @@ final class UserSaid {
 sealed class WhatChanged {
   const WhatChanged();
 
+  /// Every `shape` a [WhatChanged] may decode from, for whoever checks
+  /// that no two packages' top-level node shapes collide (docking_station,
+  /// 2026-11-16).
+  static const Set<String> shapeNames = {
+    Edited.shapeName,
+    Deleted.shapeName,
+    Restored.shapeName,
+  };
+
   /// [json] as a [WhatChanged], read strictly: an unknown shape, a field
   /// missing, extra or of the wrong type, or a malformed id, is a
   /// [FormatException].
   factory WhatChanged.fromJson(JsonObject json) {
     final (change, fields) = switch (json.string('shape')) {
-      'Edited' => (
+      Edited.shapeName => (
         Edited(
           text: json.string('text'),
           quotes: json.has('quotes')
@@ -341,8 +356,8 @@ sealed class WhatChanged {
         ),
         const {'shape', 'text', 'quotes'},
       ),
-      'Deleted' => (const Deleted(), const {'shape'}),
-      'Restored' => (const Restored(), const {'shape'}),
+      Deleted.shapeName => (const Deleted(), const {'shape'}),
+      Restored.shapeName => (const Restored(), const {'shape'}),
       final shape => throw FormatException('`shape` is not a change: $shape'),
     };
     for (final key in json.keys) {
@@ -371,9 +386,12 @@ final class Edited extends WhatChanged {
   /// What it quotes now, if anything.
   final Quote? quotes;
 
+  /// The `shape` this decodes and encodes as.
+  static const String shapeName = 'Edited';
+
   @override
   JsonObject toJson() => JsonObject.of({
-    'shape': 'Edited',
+    'shape': shapeName,
     'text': text,
     'quotes': ?quotes?.toJson(),
   });
@@ -383,8 +401,11 @@ final class Edited extends WhatChanged {
 final class Deleted extends WhatChanged {
   const Deleted();
 
+  /// The `shape` this decodes and encodes as.
+  static const String shapeName = 'Deleted';
+
   @override
-  JsonObject toJson() => const JsonObject.of({'shape': 'Deleted'});
+  JsonObject toJson() => const JsonObject.of({'shape': shapeName});
 }
 
 /// A deleted message was restored.
@@ -397,8 +418,11 @@ final class Deleted extends WhatChanged {
 final class Restored extends WhatChanged {
   const Restored();
 
+  /// The `shape` this decodes and encodes as.
+  static const String shapeName = 'Restored';
+
   @override
-  JsonObject toJson() => const JsonObject.of({'shape': 'Restored'});
+  JsonObject toJson() => const JsonObject.of({'shape': shapeName});
 }
 
 /// The node the journey path's apex appends for a [WhatChanged]: the
