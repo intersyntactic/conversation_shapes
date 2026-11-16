@@ -59,8 +59,8 @@
 /// stranger's bytes out of any process that holds sign-ins, so a message
 /// has to travel already built and typed, in `agent_loop`'s map form
 /// (`{"shape": "<class name>", ...its fields}`) — `is_annotation_shapes`'
-/// `Verdict` does the same, and the two packages' shape names don't
-/// collide (docking-port-e1/annotation-shapes-c9, 2026-11-16).
+/// `VerdictOnShownMessage` does the same, and the two packages' shape names
+/// don't collide (docking-port-e1/annotation-shapes-c9, 2026-11-16).
 ///
 /// It imports `is_shapes` and `checked_json`, so a shape file may import
 /// it under import admission's pure list once both are on it.

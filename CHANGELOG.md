@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+
+- Doc fix: the library doc's reference to `is_annotation_shapes`' `Verdict`
+  now says `VerdictOnShownMessage`, its name as of `is_annotation_shapes`
+  0.3.0 (annotation-shapes-c9, 2026-11-16). No code change.
+
 ## 0.8.0
 
 - `UserSaid.shapeName` and `WhatChanged.shapeNames` expose the `"shape"`
