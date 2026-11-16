@@ -53,10 +53,20 @@
 /// these to show a reply live as it streams
 /// (agent-loop-b6/intersyntactic-a8, 2026-11-16).
 ///
-/// It imports only `is_shapes`, so a shape file may import it under import
-/// admission's pure list once it is on it.
+/// [UserSaid] and [WhatChanged] carry strict JSON codecs: encoding and a
+/// `fromJson` that refuses an unknown shape, a field missing, extra or of
+/// the wrong type, or a malformed id. The walls rule keeps a parser of a
+/// stranger's bytes out of any process that holds sign-ins, so a message
+/// has to travel already built and typed, in `agent_loop`'s map form
+/// (`{"shape": "<class name>", ...its fields}`) — `is_annotation_shapes`'
+/// `Verdict` does the same, and the two packages' shape names don't
+/// collide (docking-port-e1/annotation-shapes-c9, 2026-11-16).
+///
+/// It imports `is_shapes` and `checked_json`, so a shape file may import
+/// it under import admission's pure list once both are on it.
 library;
 
+import 'package:checked_json/checked_json.dart';
 import 'package:is_shapes/is_shapes.dart';
 
 /// What an agent calls itself.
@@ -124,6 +134,39 @@ final class SourceMessageId {
 /// the quote, never an identity, so nothing reads [UnknownAuthor] as one.
 sealed class QuotedAuthor {
   const QuotedAuthor();
+
+  /// [json] as a [QuotedAuthor], read strictly: an unknown shape, a field
+  /// missing, extra or of the wrong type, or a malformed id, is a
+  /// [FormatException].
+  factory QuotedAuthor.fromJson(JsonObject json) {
+    final (author, fields) = switch (json.string('shape')) {
+      'KnownAuthor' => (
+        KnownAuthor(
+          ActorId.parse(json.string('actor')) ??
+              (throw JsonFieldException('actor', 'an actor id')),
+        ),
+        const {'shape', 'actor'},
+      ),
+      'UnknownAuthor' => (
+        UnknownAuthor(json.stringOrNull('displayName')),
+        const {'shape', 'displayName'},
+      ),
+      final shape => throw FormatException(
+        '`shape` is not a quoted author: $shape',
+      ),
+    };
+    for (final key in json.keys) {
+      if (!fields.contains(key)) {
+        throw FormatException(
+          '`$key` is not a field of ${json.string('shape')}',
+        );
+      }
+    }
+    return author;
+  }
+
+  /// This [QuotedAuthor] as JSON, for `jsonEncode` inside a [Quote].
+  JsonObject toJson();
 }
 
 /// The quoted message's author, resolved to an actor id.
@@ -132,6 +175,10 @@ final class KnownAuthor extends QuotedAuthor {
 
   /// Who wrote the quoted message.
   final ActorId actor;
+
+  @override
+  JsonObject toJson() =>
+      JsonObject.of({'shape': 'KnownAuthor', 'actor': actor.value});
 }
 
 /// The quoted message's author wasn't in the record, or a module's attempt
@@ -141,6 +188,10 @@ final class UnknownAuthor extends QuotedAuthor {
 
   /// Whatever the source showed alongside the quote, if it showed anything.
   final String? displayName;
+
+  @override
+  JsonObject toJson() =>
+      JsonObject.of({'shape': 'UnknownAuthor', 'displayName': ?displayName});
 }
 
 /// A message a [UserSaid] quotes, as its source carries it.
@@ -160,6 +211,32 @@ final class Quote {
   /// journey path: then this is the only trace of what was quoted a reader
   /// can still see.
   final String? preview;
+
+  /// [json] as a [Quote], read strictly: a field missing, extra or of the
+  /// wrong type, or a malformed id, is a [FormatException].
+  factory Quote.fromJson(JsonObject json) {
+    const fields = {'source', 'author', 'preview'};
+    for (final key in json.keys) {
+      if (!fields.contains(key)) {
+        throw FormatException('`$key` is not a field of Quote');
+      }
+    }
+    return Quote(
+      source:
+          SourceMessageId.parse(json.string('source')) ??
+          (throw JsonFieldException('source', 'a source message id')),
+      author: QuotedAuthor.fromJson(json.object('author')),
+      preview: json.stringOrNull('preview'),
+    );
+  }
+
+  /// This [Quote] as JSON, for `jsonEncode` inside a [UserSaid] or a
+  /// [WhatChanged].
+  JsonObject toJson() => JsonObject.of({
+    'source': source.value,
+    'author': author.toJson(),
+    'preview': ?preview,
+  });
 }
 
 /// What a person said, as a module received it from its source.
@@ -175,6 +252,11 @@ final class Quote {
 /// "Who may write a [UserSaid]" is the owner gate: enforced once, outside
 /// every module, by whatever appends on their behalf, so one module can
 /// never put words in another's mouth.
+///
+/// It travels as JSON in a node's map form, `{"shape": "UserSaid", ...its
+/// fields}`, the same form `agent_loop` writes a turn's node in: a module
+/// builds one and hands it on already typed, so nothing downstream parses
+/// a stranger's bytes (RULINGS: types at the boundary).
 final class UserSaid {
   const UserSaid({
     required this.author,
@@ -195,6 +277,40 @@ final class UserSaid {
 
   /// The message this one quotes or replies to, if its source carries one.
   final Quote? quotes;
+
+  /// [json] as a [UserSaid], read strictly: an unknown shape, a field
+  /// missing, extra or of the wrong type, or a malformed id, is a
+  /// [FormatException].
+  factory UserSaid.fromJson(JsonObject json) {
+    if (json.string('shape') != 'UserSaid') {
+      throw FormatException('`shape` is not UserSaid: ${json.raw('shape')}');
+    }
+    const fields = {'shape', 'author', 'source', 'text', 'quotes'};
+    for (final key in json.keys) {
+      if (!fields.contains(key)) {
+        throw FormatException('`$key` is not a field of UserSaid');
+      }
+    }
+    return UserSaid(
+      author:
+          ActorId.parse(json.string('author')) ??
+          (throw JsonFieldException('author', 'an actor id')),
+      source:
+          SourceMessageId.parse(json.string('source')) ??
+          (throw JsonFieldException('source', 'a source message id')),
+      text: json.string('text'),
+      quotes: json.has('quotes') ? Quote.fromJson(json.object('quotes')) : null,
+    );
+  }
+
+  /// This [UserSaid] in a node's map form, for `jsonEncode`.
+  JsonObject toJson() => JsonObject.of({
+    'shape': 'UserSaid',
+    'author': author.value,
+    'source': source.value,
+    'text': text,
+    'quotes': ?quotes?.toJson(),
+  });
 }
 
 /// What an earlier [UserSaid] became, in message terms: the source's own
@@ -204,8 +320,43 @@ final class UserSaid {
 /// changed message by its [SourceMessageId] (the docking port's `Changed`
 /// carries one), since the module never learns which turn its message
 /// became.
+///
+/// It travels as JSON in a node's map form, the same one [UserSaid] does
+/// (`{"shape": "<class name>", ...its fields}`), so it can cross the same
+/// boundary already typed.
 sealed class WhatChanged {
   const WhatChanged();
+
+  /// [json] as a [WhatChanged], read strictly: an unknown shape, a field
+  /// missing, extra or of the wrong type, or a malformed id, is a
+  /// [FormatException].
+  factory WhatChanged.fromJson(JsonObject json) {
+    final (change, fields) = switch (json.string('shape')) {
+      'Edited' => (
+        Edited(
+          text: json.string('text'),
+          quotes: json.has('quotes')
+              ? Quote.fromJson(json.object('quotes'))
+              : null,
+        ),
+        const {'shape', 'text', 'quotes'},
+      ),
+      'Deleted' => (const Deleted(), const {'shape'}),
+      'Restored' => (const Restored(), const {'shape'}),
+      final shape => throw FormatException('`shape` is not a change: $shape'),
+    };
+    for (final key in json.keys) {
+      if (!fields.contains(key)) {
+        throw FormatException(
+          '`$key` is not a field of ${json.string('shape')}',
+        );
+      }
+    }
+    return change;
+  }
+
+  /// This [WhatChanged] in a node's map form, for `jsonEncode`.
+  JsonObject toJson();
 }
 
 /// The message was edited: [text] and, if the source now shows one,
@@ -219,11 +370,21 @@ final class Edited extends WhatChanged {
 
   /// What it quotes now, if anything.
   final Quote? quotes;
+
+  @override
+  JsonObject toJson() => JsonObject.of({
+    'shape': 'Edited',
+    'text': text,
+    'quotes': ?quotes?.toJson(),
+  });
 }
 
 /// The message was deleted.
 final class Deleted extends WhatChanged {
   const Deleted();
+
+  @override
+  JsonObject toJson() => const JsonObject.of({'shape': 'Deleted'});
 }
 
 /// A deleted message was restored.
@@ -235,6 +396,9 @@ final class Deleted extends WhatChanged {
 /// same turn, so it is this shape, not a fresh [UserSaid].
 final class Restored extends WhatChanged {
   const Restored();
+
+  @override
+  JsonObject toJson() => const JsonObject.of({'shape': 'Restored'});
 }
 
 /// The node the journey path's apex appends for a [WhatChanged]: the

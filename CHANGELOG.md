@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+- `UserSaid` and `WhatChanged` (`Edited`, `Deleted`, `Restored`) carry
+  strict JSON codecs: `toJson()` and a `fromJson` factory, in `agent_loop`'s
+  node map form (`{"shape": "<class name>", ...its fields}`). `fromJson`
+  refuses an unknown shape, a field missing, extra or of the wrong type, or
+  a malformed id. Needed so the docking station can hand a module's reading
+  to the journey path's loop as bytes, already typed, without any process
+  that holds sign-ins parsing a stranger's JSON itself.
+- New dependency: `checked_json ^0.2.1`, now on this package's pure list
+  alongside `is_shapes`.
+
 ## 0.6.0
 
 - New `ReplyChunk(text)`: one piece of a reply as the agent streams it,

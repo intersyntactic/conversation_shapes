@@ -57,7 +57,10 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
   optionally the `Quote` it answers or replies to. Written once and never
   revised, so every field is identity. `text` may be empty when `quotes` is
   set, since a reply that is only a quote and an @-mention has nothing of
-  its own to say.
+  its own to say. It carries a strict JSON codec — `toJson()` and
+  `UserSaid.fromJson`, in `agent_loop`'s node map form — so a module can
+  hand one on already built and typed, and nothing downstream parses a
+  stranger's bytes.
 - `SourceMessageId`: the typed id `UserSaid.source` carries, opaque here like
   `ActorId`'s tail, since this package doesn't know Teams or Slack and can't
   say what either one's ids look like.
@@ -74,7 +77,8 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
 - `WhatChanged`: sealed, what an earlier `UserSaid` became at its source —
   `Edited(text, quotes)`, `Deleted()`, or `Restored()`. A module's reading
   of the change in message terms, before anything maps the message to a
-  `TurnId`.
+  `TurnId`. Carries the same kind of strict JSON codec as `UserSaid`, in
+  the same map form.
 - `UserSaidChanged`: the node the journey path's apex appends for a
   `WhatChanged`, once it knows which `TurnId` the changed message became —
   `by` who changed it, `target` the `TurnId`, and `change` the
@@ -134,15 +138,16 @@ is no one else's contract.
 ## The pure list
 
 A shape file may import only what import admission's pure list allows. This
-package imports only `is_shapes`, so it has to be added to that list beside
-it. `test/pure_list_test.dart` holds it to the list, and it reads directives
-from the parse tree, so every branch of a conditional import is read.
+package imports `is_shapes` and `checked_json`, so both have to be on that
+list. `test/pure_list_test.dart` holds it to the list, and it reads
+directives from the parse tree, so every branch of a conditional import is
+read.
 
 ## Depending on it
 
 ```yaml
 dependencies:
-  is_conversation_shapes: ^0.3.0
+  is_conversation_shapes: ^0.7.0
 ```
 
 It is published after `is_shapes`, which it depends on.
