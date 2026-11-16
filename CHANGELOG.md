@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- New `ReplyChunk(text)`: one piece of a reply as the agent streams it,
+  written to the agent loop's own chain, not the journey path — a chunk
+  isn't a turn, so it carries no `TurnId` and no index of its own; the
+  chain's own hash-chaining gives every chunk its order
+  (agent-loop-b6/intersyntactic-a8, 2026-11-16).
+
 ## 0.5.0
 
 - New sealed `WhatChanged`: a `UserSaid` edited, deleted, or restored at its

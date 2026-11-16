@@ -81,6 +81,10 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
   `WhatChanged`. Not a `Withdrawal<UserSaid>`: a restore has to target the
   original turn, and a fresh `UserSaid` would mint a new one, orphaning
   anything already pointing at it.
+- `ReplyChunk`: one piece of a reply as the agent streams it — a delta, not
+  the reply so far. Written to the agent loop's own chain, not the journey
+  path: a chunk isn't a turn, so it carries no `TurnId` and no index; the
+  chain's own hash-chaining gives every chunk its order.
 - `ReplyText`: the agent's reply to one `UserSaid`, written once, when the
   message it answers is finished. It `answers` by the `TurnId` the journey
   path delivered back for that `UserSaid`, which is what makes two replies

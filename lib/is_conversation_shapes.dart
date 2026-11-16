@@ -44,6 +44,15 @@
 /// `Withdrawal<UserSaid>`: a restore has to target the original turn, and
 /// a fresh [UserSaid] would mint a new one (Nick, 2026-11-16).
 ///
+/// [ReplyChunk] is not a journey path node at all: it is one piece of a
+/// reply as the agent streams it, written to the agent loop's own chain,
+/// which RULINGS' apex ruling keeps separate from the journey path's turns
+/// ("a loop's chain holds only that loop's turns; each event ... has
+/// chains of their own," and a chunk isn't a turn). It is still named here,
+/// under the same cross-module test: a renderer outside the loop reads
+/// these to show a reply live as it streams
+/// (agent-loop-b6/intersyntactic-a8, 2026-11-16).
+///
 /// It imports only `is_shapes`, so a shape file may import it under import
 /// admission's pure list once it is on it.
 library;
@@ -259,11 +268,26 @@ final class UserSaidChanged {
   final WhatChanged change;
 }
 
+/// One piece of a reply as the agent streams it: a delta, not the reply
+/// so far. Written to the agent loop's own chain, not the journey path —
+/// a chunk isn't a turn, so it carries no [TurnId] and no index of its
+/// own. The chain itself gives every chunk its order, each hashed over
+/// its predecessor; once streaming ends, the closing [ReplyText] (or
+/// whatever the loop writes to the journey path) references the chain's
+/// tip by hash, the only place the chunk chain and the journey path meet.
+final class ReplyChunk {
+  const ReplyChunk(this.text);
+
+  /// This chunk's own text.
+  final String text;
+}
+
 /// The agent's reply to one [UserSaid], written once, when the message it
 /// answers is finished.
 ///
-/// A streamed reply is shown live and never stored piece by piece: this is
-/// the one pass a message gets, not the latest of several.
+/// A streamed reply is shown live as its [ReplyChunk]s arrive, but this is
+/// the only pass the journey path sees: the one node, written when
+/// streaming ends, not the latest of several.
 ///
 /// [answers] is the [TurnId] the journey path delivered back for the
 /// [UserSaid] once it was appended. It is how a module knows which
