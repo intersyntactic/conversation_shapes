@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+
+- New sealed `WhatChanged`: a `UserSaid` edited, deleted, or restored at its
+  source, in message terms — a module's reading of that before anything maps
+  the message to a `TurnId`. Cases `Edited(text, quotes)`, `Deleted()`,
+  `Restored()`.
+- New `UserSaidChanged`: the node the journey path's apex appends for a
+  `WhatChanged`, targeting the `TurnId` of the `UserSaid` it changes. Not a
+  `Withdrawal<UserSaid>`: a restore has to target the original turn, and a
+  fresh `UserSaid` would mint a new one. `by` counts only when it is who
+  wrote the target, the same rule `Withdrawal` and `AgentName`'s rename
+  keep.
+
 ## 0.4.0
 
 - `Quote` gains an optional `preview: String?`: a shortened copy of the

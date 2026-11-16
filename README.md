@@ -71,6 +71,16 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
   never wrote to the agent, say — under every way a module might try, so a
   reader handles both cases. A display name is whatever the source showed
   alongside the quote; it is never read as an identity.
+- `WhatChanged`: sealed, what an earlier `UserSaid` became at its source —
+  `Edited(text, quotes)`, `Deleted()`, or `Restored()`. A module's reading
+  of the change in message terms, before anything maps the message to a
+  `TurnId`.
+- `UserSaidChanged`: the node the journey path's apex appends for a
+  `WhatChanged`, once it knows which `TurnId` the changed message became —
+  `by` who changed it, `target` the `TurnId`, and `change` the
+  `WhatChanged`. Not a `Withdrawal<UserSaid>`: a restore has to target the
+  original turn, and a fresh `UserSaid` would mint a new one, orphaning
+  anything already pointing at it.
 - `ReplyText`: the agent's reply to one `UserSaid`, written once, when the
   message it answers is finished. It `answers` by the `TurnId` the journey
   path delivered back for that `UserSaid`, which is what makes two replies
@@ -81,8 +91,12 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
 **A pass of `AgentName` counts only when the agent it names wrote it.** A
 reader discards a pass from anyone else. The shape can't check this, so the
 reader has to: an agent's name is the agent's to choose, and no one else can
-rename it. It is the same kind of rule as `Withdraw`'s, which counts only
+rename it. It is the same kind of rule as `Withdrawal`'s, which counts only
 from the target's author.
+
+**A `UserSaidChanged` counts only when `by` is who wrote the `UserSaid` at
+its `target`.** The same rule again: changing a message is its author's to
+do, and a reader discards one from anyone else.
 
 **Who may write a `UserSaid` is the owner gate.** Enforced once, outside
 every module, by whatever appends on a module's behalf, so one module can

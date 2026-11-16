@@ -36,6 +36,14 @@
 /// resolve one — so a reader has to handle both cases, and a bare display
 /// name can never pass for an identity.
 ///
+/// A [UserSaid] may later be edited, deleted, or restored at its source.
+/// [WhatChanged] is the module's reading of that, in message terms, before
+/// anything maps the message to a [TurnId]; [UserSaidChanged] is the node
+/// the apex appends once it has, targeting the turn the way a
+/// `Withdrawal` or [ReplyText.answers] does. It is its own shape, not a
+/// `Withdrawal<UserSaid>`: a restore has to target the original turn, and
+/// a fresh [UserSaid] would mint a new one (Nick, 2026-11-16).
+///
 /// It imports only `is_shapes`, so a shape file may import it under import
 /// admission's pure list once it is on it.
 library;
@@ -178,6 +186,77 @@ final class UserSaid {
 
   /// The message this one quotes or replies to, if its source carries one.
   final Quote? quotes;
+}
+
+/// What an earlier [UserSaid] became, in message terms: the source's own
+/// account of the change, before anything maps the message to a [TurnId].
+///
+/// A module's reading produces this from its relay's arrivals, naming the
+/// changed message by its [SourceMessageId] (the docking port's `Changed`
+/// carries one), since the module never learns which turn its message
+/// became.
+sealed class WhatChanged {
+  const WhatChanged();
+}
+
+/// The message was edited: [text] and, if the source now shows one,
+/// [quotes] replace what the original [UserSaid] said, wholesale — Teams
+/// sends the full new content on an edit, never a diff.
+final class Edited extends WhatChanged {
+  const Edited({required this.text, this.quotes});
+
+  /// What the message says now.
+  final String text;
+
+  /// What it quotes now, if anything.
+  final Quote? quotes;
+}
+
+/// The message was deleted.
+final class Deleted extends WhatChanged {
+  const Deleted();
+}
+
+/// A deleted message was restored.
+///
+/// Not a new [UserSaid]: re-appending one would mint a new [TurnId] for
+/// what is semantically the same message, orphaning anything that already
+/// points at the turn the original [UserSaid] was given — a [ReplyText]
+/// answering it, a later [WhatChanged] of it. A restore has to target that
+/// same turn, so it is this shape, not a fresh [UserSaid].
+final class Restored extends WhatChanged {
+  const Restored();
+}
+
+/// The node the journey path's apex appends for a [WhatChanged]: the
+/// author changed the [UserSaid] at [target], the [TurnId] the journey
+/// path delivered back for it — the apex is who knows that id, since it
+/// wrote the turn and the turn's envelope names the arrival it came from.
+///
+/// [by] counts only when it is who wrote [target]: the same rule
+/// [AgentName]'s rename and `is_shapes`' `Withdrawal` both keep. A reader
+/// discards a [UserSaidChanged] from anyone else — changing a message is
+/// the author's to do, and no one else can do it on their behalf.
+///
+/// An admin deleting another's message is wanted later (Nick, 2026-11-16)
+/// but not this shape: that needs its own rule for who may count, decided
+/// when it's built, not guessed at now.
+final class UserSaidChanged {
+  const UserSaidChanged({
+    required this.by,
+    required this.target,
+    required this.change,
+  });
+
+  /// Who changed it. Counts only if this is who wrote [target].
+  final ActorId by;
+
+  /// The [UserSaid] this changes, by the [TurnId] the journey path
+  /// delivered back for it.
+  final TurnId target;
+
+  /// What it became.
+  final WhatChanged change;
 }
 
 /// The agent's reply to one [UserSaid], written once, when the message it
