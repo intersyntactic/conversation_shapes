@@ -1,4 +1,4 @@
-/// The shapes a journey path's conversation turns on, needed by whichever
+/// The shapes a trajectory's conversation turns on, needed by whichever
 /// module carries one, not only the agent: what an agent calls itself, what
 /// a person said, and the agent's reply to it.
 ///
@@ -6,7 +6,7 @@
 /// [UserSaid] is person-authored, and this package held it anyway, because
 /// the test RULINGS gives a package like this is "which modules need the
 /// shape,"
-/// the same test that put `Comment`/`Correction`/`Approve`/`Seen` in
+/// the same test that put `NodeComment`/`NodeCorrection`/`NodeApproval`/`NodeSeenMark` in
 /// `is_annotation_shapes` regardless of who annotates. It was named
 /// `is_agent_shapes` first and renamed once `UserSaid` made the mismatch
 /// visible; `is_agent_shapes` on pub.dev is discontinued in its favour.
@@ -15,14 +15,14 @@
 /// on first boot, and keeps. Its name is not part of the id: the agent chooses
 /// its name, the name can change, and the id never does, so a rename leaves
 /// every node the agent has written still naming it. The name is an
-/// [AgentName], a node in a journey path like any other.
+/// [AgentName], a node in a trajectory like any other.
 ///
 /// How an install mints the id is the install's business: the tail is
 /// opaque, so no reader looks inside it, and [ActorId.parse] is the only
 /// check it has to pass.
 ///
 /// [UserSaid] and [ReplyText] are the minimum a module needs to carry a
-/// Teams or Slack conversation across a journey path: one shape for what
+/// Teams or Slack conversation across a trajectory: one shape for what
 /// a person said, one for the agent's reply to it. Both are facts,
 /// written once and never revised, so neither declares `@identity`: every
 /// field is identity, the safe default for a node nothing ever corrects.
@@ -39,14 +39,14 @@
 /// A [UserSaid] may later be edited, deleted, or restored at its source.
 /// [WhatChanged] is the module's reading of that, in message terms, before
 /// anything maps the message to a [TurnId]; [UserSaidChanged] is the node
-/// the apex appends once it has, targeting the turn the way a
+/// the crux appends once it has, targeting the turn the way a
 /// `Withdrawal` or [ReplyText.answers] does. It is its own shape, not a
 /// `Withdrawal<UserSaid>`: a restore has to target the original turn, and
 /// a fresh [UserSaid] would mint a new one (Nick, 2026-11-16).
 ///
-/// [ReplyChunk] is not a journey path node at all: it is one piece of a
+/// [ReplyChunk] is not a trajectory node at all: it is one piece of a
 /// reply as the agent streams it, written to the agent loop's own chain,
-/// which RULINGS' apex ruling keeps separate from the journey path's turns
+/// which RULINGS' crux ruling keeps separate from the trajectory's turns
 /// ("a loop's chain holds only that loop's turns; each event ... has
 /// chains of their own," and a chunk isn't a turn). It is still named here,
 /// under the same cross-module test: a renderer outside the loop reads
@@ -73,8 +73,8 @@ import 'package:is_shapes/is_shapes.dart';
 ///
 /// The node is about [agent], its [identity]; [name] is its value. So a rename
 /// is a later pass of the same node, at the same anchor, saying a new name,
-/// and a reader takes the latest pass. There is no time in it: the journey
-/// path's order says which pass is latest.
+/// and a reader takes the latest pass. There is no time in it: the
+/// trajectory's order says which pass is latest.
 ///
 /// A pass counts only when [agent] wrote it. The shape can't check that, so a
 /// reader discards a pass written by anyone else: an agent's name is the
@@ -127,7 +127,7 @@ final class SourceMessageId {
 /// Who wrote the message a [Quote] quotes.
 ///
 /// Not always resolvable: a quote can name someone who never wrote to the
-/// journey path the quoting module hears through — someone in a group chat
+/// trajectory the quoting module hears through — someone in a group chat
 /// who never addressed the agent, say — so there has to be a case for that
 /// too, under every way a module might go about resolving it. A reader
 /// switches on both: a display name is something a source showed alongside
@@ -208,7 +208,7 @@ final class Quote {
 
   /// A shortened copy of the quoted text, if the source showed one
   /// alongside the quote. Matters most when [source] never reached the
-  /// journey path: then this is the only trace of what was quoted a reader
+  /// trajectory: then this is the only trace of what was quoted a reader
   /// can still see.
   final String? preview;
 
@@ -243,7 +243,7 @@ final class Quote {
 ///
 /// There is no echo-matching here: a module describes a [UserSaid] once, the
 /// composition appends it after the airlock has witnessed its arrival, and
-/// the journey path delivers the [TurnId] it was given back to the module —
+/// the trajectory delivers the [TurnId] it was given back to the module —
 /// that is the id everything after it, not least [ReplyText.answers], points
 /// at. A module never has to compare text to tell its own message from an
 /// echo of it, and it never appends on its own behalf
@@ -425,9 +425,9 @@ final class Restored extends WhatChanged {
   JsonObject toJson() => const JsonObject.of({'shape': shapeName});
 }
 
-/// The node the journey path's apex appends for a [WhatChanged]: the
-/// author changed the [UserSaid] at [target], the [TurnId] the journey
-/// path delivered back for it — the apex is who knows that id, since it
+/// The node the trajectory's crux appends for a [WhatChanged]: the
+/// author changed the [UserSaid] at [target], the [TurnId] the
+/// trajectory delivered back for it — the crux is who knows that id, since it
 /// wrote the turn and the turn's envelope names the arrival it came from.
 ///
 /// [by] counts only when it is who wrote [target]: the same rule
@@ -448,7 +448,7 @@ final class UserSaidChanged {
   /// Who changed it. Counts only if this is who wrote [target].
   final ActorId by;
 
-  /// The [UserSaid] this changes, by the [TurnId] the journey path
+  /// The [UserSaid] this changes, by the [TurnId] the trajectory
   /// delivered back for it.
   final TurnId target;
 
@@ -457,12 +457,12 @@ final class UserSaidChanged {
 }
 
 /// One piece of a reply as the agent streams it: a delta, not the reply
-/// so far. Written to the agent loop's own chain, not the journey path —
+/// so far. Written to the agent loop's own chain, not the trajectory —
 /// a chunk isn't a turn, so it carries no [TurnId] and no index of its
 /// own. The chain itself gives every chunk its order, each hashed over
 /// its predecessor; once streaming ends, the closing [ReplyText] (or
-/// whatever the loop writes to the journey path) references the chain's
-/// tip by hash, the only place the chunk chain and the journey path meet.
+/// whatever the loop writes to the trajectory) references the chain's
+/// tip by hash, the only place the chunk chain and the trajectory meet.
 final class ReplyChunk {
   const ReplyChunk(this.text);
 
@@ -474,10 +474,10 @@ final class ReplyChunk {
 /// answers is finished.
 ///
 /// A streamed reply is shown live as its [ReplyChunk]s arrive, but this is
-/// the only pass the journey path sees: the one node, written when
+/// the only pass the trajectory sees: the one node, written when
 /// streaming ends, not the latest of several.
 ///
-/// [answers] is the [TurnId] the journey path delivered back for the
+/// [answers] is the [TurnId] the trajectory delivered back for the
 /// [UserSaid] once it was appended. It is how a module knows which
 /// conversation to post into and which message to thread under, and it is
 /// what makes two replies two different nodes: each answers a different

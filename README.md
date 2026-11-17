@@ -1,6 +1,6 @@
 # is_conversation_shapes
 
-Shapes for a journey path's conversation, needed by whichever modules
+Shapes for a trajectory's conversation, needed by whichever modules
 carry one, not only the agent: what an agent calls itself, what a person
 said, and the agent's reply to it.
 
@@ -39,7 +39,7 @@ final onlyAQuote = UserSaid(
   ),
 );
 
-// The journey path delivers back a TurnId for `said` once it's appended;
+// The trajectory delivers back a TurnId for `said` once it's appended;
 // the agent's reply answers it by that id, never by matching text.
 final saidId = TurnId.of(Uint8List(0)); // stood in here; nothing is stored
 final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
@@ -50,7 +50,7 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
 - `AgentName`: what an agent calls itself. Its `agent` is marked `@identity`,
   so the node is about the agent, and its `name` is its value. A rename is a
   later pass of the same node, at the same anchor, and a reader takes the
-  latest. It holds no time, because the journey path's order already says
+  latest. It holds no time, because the trajectory's order already says
   which pass is latest.
 - `UserSaid`: what a person said, as a module received it from its source —
   who said it, the message's id in its source's own terms, the text, and
@@ -79,19 +79,19 @@ final reply = ReplyText(by: id, answers: saidId, text: 'nearly there');
   of the change in message terms, before anything maps the message to a
   `TurnId`. Carries the same kind of strict JSON codec as `UserSaid`, in
   the same map form.
-- `UserSaidChanged`: the node the journey path's apex appends for a
+- `UserSaidChanged`: the node the trajectory's crux appends for a
   `WhatChanged`, once it knows which `TurnId` the changed message became —
   `by` who changed it, `target` the `TurnId`, and `change` the
   `WhatChanged`. Not a `Withdrawal<UserSaid>`: a restore has to target the
   original turn, and a fresh `UserSaid` would mint a new one, orphaning
   anything already pointing at it.
 - `ReplyChunk`: one piece of a reply as the agent streams it — a delta, not
-  the reply so far. Written to the agent loop's own chain, not the journey
-  path: a chunk isn't a turn, so it carries no `TurnId` and no index; the
+  the reply so far. Written to the agent loop's own chain, not the
+  trajectory: a chunk isn't a turn, so it carries no `TurnId` and no index; the
   chain's own hash-chaining gives every chunk its order.
 - `ReplyText`: the agent's reply to one `UserSaid`, written once, when the
-  message it answers is finished. It `answers` by the `TurnId` the journey
-  path delivered back for that `UserSaid`, which is what makes two replies
+  message it answers is finished. It `answers` by the `TurnId` the
+  trajectory delivered back for that `UserSaid`, which is what makes two replies
   two different nodes — no turn number or index needed alongside it.
 
 ## The rule a reader keeps
@@ -121,10 +121,10 @@ are written once and never revised.
 A shape only some modules need is declared once, in a package of its own,
 because two declarations with one name are two types, and neither binds
 where the other is accepted. That test is "which modules need the shape,"
-not "who authors it" — the same test that put `Comment`, `Correction` and
-`Approve` in `is_annotation_shapes` regardless of who annotates. `UserSaid`
+not "who authors it" — the same test that put `NodeComment`,
+`NodeCorrection` and `NodeApproval` in `is_annotation_shapes` regardless of who annotates. `UserSaid`
 is person-authored and still belongs here, because the Teams and Slack
-modules both need it to carry a conversation across a journey path. This
+modules both need it to carry a conversation across a trajectory. This
 package was named `is_agent_shapes` until that mismatch became visible; it
 is now discontinued on pub.dev in this package's favour.
 
