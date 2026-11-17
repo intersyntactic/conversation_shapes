@@ -39,7 +39,7 @@ void main() {
   );
   print('${onlyAQuote.author} quoted ${onlyAQuote.quotes?.author}');
 
-  // The journey path delivers back a TurnId for `said` once it's appended;
+  // The trajectory delivers back a TurnId for `said` once it's appended;
   // here we stand one in, since nothing is actually being stored.
   final saidId = TurnId.of(Uint8List(0));
 

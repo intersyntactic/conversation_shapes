@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.2
+
+- Allows `is_shapes` `>=0.4.0 <0.6.0`, so an app can use this package with
+  `is_shapes` 0.5.0 (`MissionId`, `TrajectoryId`). Nothing here uses a name
+  0.5.0 renamed or removed.
+- Docs: a journey path is a trajectory, and its apex is its crux (Nick,
+  17 Nov), and `is_annotation_shapes`' types by their 0.3.0 names. No code
+  change.
+- `is_lint_rules` 0.1.0, every rule on; no findings.
+
 ## 0.8.1
 
 - Doc fix: the library doc's reference to `is_annotation_shapes`' `Verdict`
