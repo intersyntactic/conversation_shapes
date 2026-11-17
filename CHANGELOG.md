@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+- Allows `is_shapes` `>=0.4.0 <0.7.0`, so an app can use this package with
+  `is_shapes` 0.6.0, which removes `RendererId` (renderers are cut, Nick,
+  18 Nov). Nothing here uses it. No code change.
+
 ## 0.8.2
 
 - Allows `is_shapes` `>=0.4.0 <0.6.0`, so an app can use this package with
