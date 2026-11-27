@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.4
+
+- Discontinued in favour of `is_conversation_vocabulary`; the README says
+  what moves and what is gone. No code change.
+- `checked_json` `^0.3.0`, so an app that has moved to it can still use this
+  package until it moves to `is_conversation_vocabulary`. Nothing here decodes
+  text; the strict decoders take a `JsonObject` already parsed.
+
 ## 0.8.3
 
 - Allows `is_shapes` `>=0.4.0 <0.7.0`, so an app can use this package with
